@@ -50,7 +50,7 @@ Desenvolvido com **React Native (Expo) + TypeScript**, com foco em publicação 
 | **Medium** | Nomes de 7 a 10 caracteres | Germany, Portugal |
 | **Hard** | Nomes com mais de 10 caracteres | United States, South Korea |
 | **All** | Sem restrição de tamanho | qualquer país |
-| **Random Global Mix** | Sorteio surpresa entre todos os países e continentes | qualquer país |
+| **Random Global Mix** | Sorteio surpresa com chance igual para cada continente | qualquer país |
 
 > O tamanho do nome considera **todos os caracteres, incluindo espaços**.
 

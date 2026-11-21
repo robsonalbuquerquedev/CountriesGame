@@ -12,6 +12,9 @@ import ModeSelectScreen from '../features/game/screens/ModeSelectScreen';
 import DifficultyScreen from '../features/game/screens/DifficultyScreen';
 import GameScreen from '../features/game/screens/GameScreen';
 import ResultScreen from '../features/game/screens/ResultScreen';
+import RankingScreen from '../features/ranking/screens/RankingScreen';
+import HistoryScreen from '../features/history/screens/HistoryScreen';
+import StatsScreen from '../features/stats/screens/StatsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -62,9 +65,9 @@ export default function Navigation() {
           component={ResultScreen}
           options={{ headerShown: false, gestureEnabled: false }}
         />
-        <Stack.Screen name="Ranking" component={ComingSoon} options={{ title: 'Ranking' }} />
-        <Stack.Screen name="History" component={ComingSoon} options={{ title: 'Histórico' }} />
-        <Stack.Screen name="Stats" component={ComingSoon} options={{ title: 'Estatísticas' }} />
+        <Stack.Screen name="Ranking" component={RankingScreen} options={{ title: 'Ranking' }} />
+        <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Histórico' }} />
+        <Stack.Screen name="Stats" component={StatsScreen} options={{ title: 'Estatísticas' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

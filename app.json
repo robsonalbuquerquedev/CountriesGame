@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "countries-game",
+    "name": "Countries Game",
     "slug": "countries-game",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,6 +16,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "package": "br.com.englishstudyhub.countriesgame",
       "predictiveBackGestureEnabled": false
     },
     "web": {

@@ -27,15 +27,27 @@ export function filterByDifficulty(difficulty: Difficulty): Country[] {
  * Sorteia um país que ainda não saiu na partida e o marca como usado.
  * Quando todos já saíram, o controle é reiniciado (o Set recebido é limpo).
  */
-export function pickCountry(pool: Country[], used: Set<string>): Country {
+export function pickCountry(
+  pool: Country[],
+  used: Set<string>,
+  balanced = false // true = sorteia o continente primeiro (Random Global Mix)
+): Country {
   let available = pool.filter((c) => !used.has(c.name));
   if (available.length === 0) {
     used.clear();
     available = pool;
   }
-  const chosen = available[Math.floor(Math.random() * available.length)];
-  used.add(chosen.name);
-  return chosen;
+
+  let candidates = available;
+  if (balanced) {
+    const continents = Array.from(new Set(available.map((c) => c.continent)));
+    const chosen = continents[Math.floor(Math.random() * continents.length)];
+    candidates = available.filter((c) => c.continent === chosen);
+  }
+
+  const country = candidates[Math.floor(Math.random() * candidates.length)];
+  used.add(country.name);
+  return country;
 }
 
 /* ───────────────────────── Anagrama ───────────────────────── */

@@ -43,7 +43,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const pool = useMemo(() => filterByDifficulty(difficulty), [difficulty]);
   const usedRef = useRef<Set<string>>(new Set());
 
-  const [country, setCountry] = useState<Country>(() => pickCountry(pool, usedRef.current));
+  const [country, setCountry] = useState<Country>(() => pickCountry(pool, usedRef.current, difficulty === 'random'));
   const [stats, setStats] = useState(() => initialStats(mode));
   const [hintsShown, setHintsShown] = useState(0);
   const [input, setInput] = useState('');
@@ -85,7 +85,7 @@ export default function GameScreen({ navigation, route }: Props) {
       finishGame();
       return;
     }
-    setCountry(pickCountry(pool, usedRef.current));
+    setCountry(pickCountry(pool, usedRef.current, difficulty === 'random'));
     setHintsShown(0);
     setInput('');
     setResult(null);

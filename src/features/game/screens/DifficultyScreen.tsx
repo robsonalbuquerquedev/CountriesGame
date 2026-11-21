@@ -16,7 +16,7 @@ const OPTIONS: { key: Difficulty; rule: string }[] = [
   { key: 'medium', rule: '7 a 10 letras (ex.: Germany, Portugal)' },
   { key: 'hard', rule: 'Mais de 10 letras (ex.: United States, South Korea)' },
   { key: 'all', rule: 'Sem restrição de tamanho' },
-  { key: 'random', rule: 'Desafio surpresa: qualquer país, de qualquer continente' },
+  { key: 'random', rule: 'Desafio surpresa: todos os continentes com a mesma chance' },
 ];
 
 export default function DifficultyScreen({ navigation, route }: Props) {

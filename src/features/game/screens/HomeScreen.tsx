@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -50,6 +50,9 @@ export default function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Stats')}
         />
       </View>
+      <Pressable onPress={() => navigation.navigate('About')} hitSlop={8}>
+        <Text style={styles.about}>Sobre o English Study Hub</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -62,4 +65,5 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.muted, fontSize: fontSize.md },
   best: { color: colors.warning, fontSize: fontSize.md, fontWeight: '700', marginTop: spacing.sm },
   menu: { gap: spacing.md, paddingBottom: spacing.md },
+  about: { color: colors.muted, fontSize: fontSize.sm, textAlign: 'center', paddingBottom: spacing.sm },
 });

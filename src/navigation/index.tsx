@@ -15,6 +15,7 @@ import ResultScreen from '../features/game/screens/ResultScreen';
 import RankingScreen from '../features/ranking/screens/RankingScreen';
 import HistoryScreen from '../features/history/screens/HistoryScreen';
 import StatsScreen from '../features/stats/screens/StatsScreen';
+import AboutScreen from '../features/about/screens/AboutScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -52,6 +53,7 @@ export default function Navigation() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
+        <Stack.Screen name="About" component={AboutScreen} options={{ title: 'Sobre' }} />
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ModeSelect" component={ModeSelectScreen} options={{ title: 'Modo de jogo' }} />
         <Stack.Screen name="Difficulty" component={DifficultyScreen} options={{ title: 'Dificuldade' }} />

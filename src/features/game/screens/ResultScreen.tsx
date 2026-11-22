@@ -8,6 +8,7 @@ import { colors, fontSize, radius, spacing } from '../../../theme';
 import { accuracy } from '../logic/gameLogic';
 import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
 import MenuButton from '../components/MenuButton';
+import { useReviewPrompt } from '../../../utils/useReviewPrompt';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Result'>;
 
@@ -19,6 +20,7 @@ function feedbackMessage(pct: number) {
 
 export default function ResultScreen({ navigation, route }: Props) {
   const { match } = route.params;
+  useReviewPrompt(match);
   const pct = accuracy(match);
 
   const continentRows = Object.entries(match.byContinent).sort(

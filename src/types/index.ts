@@ -37,4 +37,5 @@ export type RootStackParamList = {
   Stats: undefined;
   Ranking: undefined;
   History: undefined;
+  About: undefined;
 };

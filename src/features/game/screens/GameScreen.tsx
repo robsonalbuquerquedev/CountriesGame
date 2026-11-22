@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +19,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Country, RootStackParamList } from '../../../types';
 import { colors, fontSize, radius, spacing } from '../../../theme';
 import { useStatsStore } from '../../../store/statsStore';
+import { useSounds } from '../../../utils/useSounds';
+import LetterTile from '../components/LetterTile';
 import {
   INITIAL_LIVES,
   POINTS_PER_CORRECT,
@@ -38,22 +41,41 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 export default function GameScreen({ navigation, route }: Props) {
   const { mode, difficulty } = route.params;
   const addMatch = useStatsStore((s) => s.addMatch);
+  const { playCorrect, playWrong } = useSounds();
+
+  // Random Global Mix sorteia primeiro o continente (chance igual para todos)
+  const balanced = difficulty === 'random';
 
   // Países disponíveis para a dificuldade escolhida e controle dos já usados
   const pool = useMemo(() => filterByDifficulty(difficulty), [difficulty]);
   const usedRef = useRef<Set<string>>(new Set());
 
-  const [country, setCountry] = useState<Country>(() => pickCountry(pool, usedRef.current, difficulty === 'random'));
+  const [country, setCountry] = useState<Country>(() =>
+    pickCountry(pool, usedRef.current, balanced)
+  );
   const [stats, setStats] = useState(() => initialStats(mode));
   const [hintsShown, setHintsShown] = useState(0);
   const [input, setInput] = useState('');
   const [result, setResult] = useState<boolean | null>(null); // null = ainda não respondeu
+  const [celebrate, setCelebrate] = useState(0); // aumenta a cada acerto (animação das letras)
+
+  const shakeX = useRef(new Animated.Value(0)).current;
 
   const letters = useMemo(() => scramble(country.name), [country]);
   const hints = useMemo(() => getHints(country), [country]);
 
   const answered = result !== null;
   const gameOver = answered && isGameOver(stats, mode);
+
+  /* ───────────── Animações ───────────── */
+
+  // Tremida horizontal do campo de resposta ao errar
+  const runShake = () => {
+    const step = (toValue: number) =>
+      Animated.timing(shakeX, { toValue, duration: 50, useNativeDriver: true });
+
+    Animated.sequence([step(10), step(-10), step(8), step(-8), step(0)]).start();
+  };
 
   /* ───────────── Ações ───────────── */
 
@@ -64,9 +86,16 @@ export default function GameScreen({ navigation, route }: Props) {
     const isCorrect = checkAnswer(input, country);
     setStats((prev) => applyAnswer(prev, country, isCorrect, mode));
     setResult(isCorrect);
-    Haptics.notificationAsync(
-      isCorrect ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error
-    );
+
+    if (isCorrect) {
+      playCorrect();
+      setCelebrate((n) => n + 1);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      playWrong();
+      runShake();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   };
 
   const finishGame = () => {
@@ -85,7 +114,7 @@ export default function GameScreen({ navigation, route }: Props) {
       finishGame();
       return;
     }
-    setCountry(pickCountry(pool, usedRef.current, difficulty === 'random'));
+    setCountry(pickCountry(pool, usedRef.current, balanced));
     setHintsShown(0);
     setInput('');
     setResult(null);
@@ -126,12 +155,15 @@ export default function GameScreen({ navigation, route }: Props) {
         >
           <Text style={styles.title}>Decifre o país</Text>
 
-          {/* Anagrama */}
+          {/* Anagrama (a key inclui o país para as letras animarem a entrada a cada rodada) */}
           <View style={styles.tiles}>
             {letters.map((letter, index) => (
-              <View key={`${letter}-${index}`} style={styles.tile}>
-                <Text style={styles.tileText}>{letter}</Text>
-              </View>
+              <LetterTile
+                key={`${country.name}-${index}`}
+                letter={letter}
+                index={index}
+                celebrate={celebrate}
+              />
             ))}
           </View>
 
@@ -163,21 +195,27 @@ export default function GameScreen({ navigation, route }: Props) {
             </Text>
           </Pressable>
 
-          {/* Resposta */}
-          <TextInput
-            value={input}
-            onChangeText={setInput}
-            onSubmitEditing={handleSubmit}
-            editable={!answered}
-            placeholder="Digite o nome em inglês"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="words"
-            autoCorrect={false}
-            autoComplete="off"
-            spellCheck={false}
-            returnKeyType="done"
-            style={[styles.input, answered && styles.disabled]}
-          />
+          {/* Resposta (treme ao errar) */}
+          <Animated.View style={{ transform: [{ translateX: shakeX }] }}>
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              onSubmitEditing={handleSubmit}
+              editable={!answered}
+              placeholder="Digite o nome em inglês"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="off"
+              spellCheck={false}
+              returnKeyType="done"
+              style={[
+                styles.input,
+                answered && styles.disabled,
+                result === false && styles.inputWrong,
+              ]}
+            />
+          </Animated.View>
 
           {!answered ? (
             <Pressable
@@ -262,16 +300,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
   },
-  tile: {
-    minWidth: 38,
-    height: 46,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
-    backgroundColor: colors.tile,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tileText: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
 
   hintsBox: {
     backgroundColor: colors.card,
@@ -303,6 +331,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     textAlign: 'center',
   },
+  inputWrong: { borderColor: colors.danger, borderWidth: 2 },
 
   primaryButton: {
     backgroundColor: colors.primary,

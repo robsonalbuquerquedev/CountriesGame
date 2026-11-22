@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
 import { colors, fontSize, radius, spacing } from '../../../theme';
-import { LINKS, SHARE_MESSAGE } from '../../../constants/links';
+import { LINKS, SHARE_MESSAGE, PARTNERS_PAGE_ENABLED } from '../../../constants/links';
 import MenuButton from '../../game/components/MenuButton';
 
 async function openUrl(url: string) {
@@ -63,6 +63,13 @@ export default function AboutScreen() {
             subtitle="Sua avaliação ajuda o app a chegar a mais pessoas"
             onPress={() => openUrl(LINKS.playStoreReviews)}
           />
+          {PARTNERS_PAGE_ENABLED && (
+            <MenuButton
+              title="Professoras parceiras"
+              subtitle="englishstudyhub.com.br/professoras"
+              onPress={() => openUrl(LINKS.partners)}
+            />
+          )}
           <MenuButton
             variant="ghost"
             title="Política de privacidade"

@@ -19,6 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Country, RootStackParamList } from '../../../types';
 import { colors, fontSize, radius, spacing } from '../../../theme';
 import { useStatsStore } from '../../../store/statsStore';
+import { useSettingsStore } from '../../../store/settingsStore';
 import { useSounds } from '../../../utils/useSounds';
 import LetterTile from '../components/LetterTile';
 import {
@@ -42,6 +43,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const { mode, difficulty } = route.params;
   const addMatch = useStatsStore((s) => s.addMatch);
   const { playCorrect, playWrong } = useSounds();
+  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
+  const toggleSound = useSettingsStore((s) => s.toggleSound);
 
   // Random Global Mix sorteia primeiro o continente (chance igual para todos)
   const balanced = difficulty === 'random';
@@ -144,9 +147,20 @@ export default function GameScreen({ navigation, route }: Props) {
         <View style={styles.topBar}>
           <Text style={styles.lives}>{livesLabel}</Text>
           <Text style={styles.score}>{stats.score} pts</Text>
-          <Pressable onPress={handleExit} style={styles.exitButton} hitSlop={8}>
-            <Text style={styles.exitText}>Sair</Text>
-          </Pressable>
+          <View style={styles.topActions}>
+            <Pressable
+              onPress={toggleSound}
+              style={styles.soundButton}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={soundEnabled ? 'Desligar som' : 'Ligar som'}
+            >
+              <Text style={styles.soundIcon}>{soundEnabled ? '🔊' : '🔇'}</Text>
+            </Pressable>
+            <Pressable onPress={handleExit} style={styles.exitButton} hitSlop={8}>
+              <Text style={styles.exitText}>Sair</Text>
+            </Pressable>
+          </View>
         </View>
 
         <ScrollView
@@ -285,6 +299,17 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   exitText: { color: colors.muted, fontSize: fontSize.md, fontWeight: '600' },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  soundButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soundIcon: { fontSize: 18 },
 
   content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
   title: {

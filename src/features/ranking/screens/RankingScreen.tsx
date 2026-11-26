@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, fontSize, spacing } from '../../../theme';
+import { Palette, fontSize, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { useStatsStore } from '../../../store/statsStore';
 import { accuracy } from '../../game/logic/gameLogic';
 import MatchRow from '../../game/components/MatchRow';
@@ -10,6 +11,9 @@ import MatchRow from '../../game/components/MatchRow';
 const MAX_ITEMS = 50;
 
 export default function RankingScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const matches = useStatsStore((s) => s.matches);
 
   // Maior pontuação primeiro. Empate: maior % de acerto, depois a partida mais recente.
@@ -52,11 +56,18 @@ export default function RankingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, flexGrow: 1 },
-  header: { color: colors.muted, fontSize: fontSize.md, marginBottom: spacing.md },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingTop: 80 },
-  emptyEmoji: { fontSize: 56 },
-  emptyText: { color: colors.muted, fontSize: fontSize.md, textAlign: 'center' },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.lg, flexGrow: 1 },
+    header: { color: colors.muted, fontSize: fontSize.md, marginBottom: spacing.md },
+    empty: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.md,
+      paddingTop: 80,
+    },
+    emptyEmoji: { fontSize: 56 },
+    emptyText: { color: colors.muted, fontSize: fontSize.md, textAlign: 'center' },
+  });

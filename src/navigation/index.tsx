@@ -1,11 +1,12 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { DarkTheme, NavigationContainer } from '@react-navigation/native';
+// src/navigation/index.tsx
+import React, { useEffect, useMemo, useState } from 'react';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
 import { RootStackParamList } from '../types';
-import { colors } from '../theme';
+import { useTheme } from '../utils/useTheme';
+import { useThemeStore } from '../store/themeStore';
 
 import HomeScreen from '../features/game/screens/HomeScreen';
 import ModeSelectScreen from '../features/game/screens/ModeSelectScreen';
@@ -16,34 +17,42 @@ import RankingScreen from '../features/ranking/screens/RankingScreen';
 import HistoryScreen from '../features/history/screens/HistoryScreen';
 import StatsScreen from '../features/stats/screens/StatsScreen';
 import AboutScreen from '../features/about/screens/AboutScreen';
+import CountriesScreen from '../features/game/screens/CountriesScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const navTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: colors.background,
-    card: colors.card,
-    text: colors.text,
-    primary: colors.primary,
-    border: colors.border,
-  },
-};
-
-// Placeholder temporário. Troque pelas telas reais (Ranking, History, Stats) quando elas existirem.
-function ComingSoon() {
-  return (
-    <View style={styles.soon}>
-      <Text style={styles.soonText}>Em breve 🚧</Text>
-    </View>
-  );
-}
-
 export default function Navigation() {
+  const { colors, scheme } = useTheme();
+
+  // Espera o tema salvo ser carregado, para não piscar no tema errado ao abrir o app
+  const [hydrated, setHydrated] = useState(useThemeStore.persist.hasHydrated());
+  useEffect(() => {
+    const unsubscribe = useThemeStore.persist.onFinishHydration(() => setHydrated(true));
+    setHydrated(useThemeStore.persist.hasHydrated());
+    return unsubscribe;
+  }, []);
+
+  const navTheme = useMemo(() => {
+    const base = scheme === 'light' ? DefaultTheme : DarkTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: colors.background,
+        card: colors.card,
+        text: colors.text,
+        primary: colors.primary,
+        border: colors.border,
+      },
+    };
+  }, [scheme, colors]);
+
+  if (!hydrated) return null;
+
   return (
     <NavigationContainer theme={navTheme}>
-      <StatusBar style="light" />
+      {/* Ícones claros em fundo escuro e escuros em fundo claro */}
+      <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
@@ -54,6 +63,7 @@ export default function Navigation() {
         }}
       >
         <Stack.Screen name="About" component={AboutScreen} options={{ title: 'Sobre' }} />
+        <Stack.Screen name="Countries" component={CountriesScreen} options={{ title: 'Países' }} />
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ModeSelect" component={ModeSelectScreen} options={{ title: 'Modo de jogo' }} />
         <Stack.Screen name="Difficulty" component={DifficultyScreen} options={{ title: 'Dificuldade' }} />
@@ -74,8 +84,3 @@ export default function Navigation() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  soon: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  soonText: { color: colors.muted, fontSize: 18 },
-});

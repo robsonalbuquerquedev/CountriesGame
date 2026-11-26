@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, fontSize, spacing } from '../../../theme';
+import { Palette, fontSize, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { useStatsStore } from '../../../store/statsStore';
 import MatchRow from '../../game/components/MatchRow';
 import MenuButton from '../../game/components/MenuButton';
 
 export default function HistoryScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const matches = useStatsStore((s) => s.matches); // já ordenado: mais recente primeiro
   const clearAll = useStatsStore((s) => s.clearAll);
 
@@ -55,12 +59,19 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, flexGrow: 1 },
-  header: { color: colors.muted, fontSize: fontSize.md, marginBottom: spacing.md },
-  footer: { marginTop: spacing.lg },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md, paddingTop: 80 },
-  emptyEmoji: { fontSize: 56 },
-  emptyText: { color: colors.muted, fontSize: fontSize.md, textAlign: 'center' },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.lg, flexGrow: 1 },
+    header: { color: colors.muted, fontSize: fontSize.md, marginBottom: spacing.md },
+    footer: { marginTop: spacing.lg },
+    empty: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.md,
+      paddingTop: 80,
+    },
+    emptyEmoji: { fontSize: 56 },
+    emptyText: { color: colors.muted, fontSize: fontSize.md, textAlign: 'center' },
+  });

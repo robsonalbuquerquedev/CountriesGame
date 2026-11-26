@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Alert, Linking, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { LINKS, SHARE_MESSAGE, PARTNERS_PAGE_ENABLED } from '../../../constants/links';
 import MenuButton from '../../game/components/MenuButton';
 
@@ -24,6 +25,9 @@ async function shareApp() {
 }
 
 export default function AboutScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const version = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
@@ -81,22 +85,23 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, gap: spacing.lg },
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.lg, gap: spacing.lg },
 
-  header: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.md },
-  emoji: { fontSize: 64 },
-  title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '900' },
-  version: { color: colors.muted, fontSize: fontSize.sm },
+    header: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.md },
+    emoji: { fontSize: 64 },
+    title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '900' },
+    version: { color: colors.muted, fontSize: fontSize.sm },
 
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  cardText: { color: colors.text, fontSize: fontSize.md, lineHeight: 22 },
+    card: {
+      backgroundColor: colors.card,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    cardText: { color: colors.text, fontSize: fontSize.md, lineHeight: 22 },
 
-  actions: { gap: spacing.md },
-});
+    actions: { gap: spacing.md },
+  });

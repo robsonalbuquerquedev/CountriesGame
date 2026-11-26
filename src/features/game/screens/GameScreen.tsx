@@ -17,7 +17,7 @@ import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Country, RootStackParamList } from '../../../types';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
 import { useStatsStore } from '../../../store/statsStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useSounds } from '../../../utils/useSounds';
@@ -36,21 +36,25 @@ import {
   pickCountry,
   scramble,
 } from '../logic/gameLogic';
+import { useTheme } from '../../../utils/useTheme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 export default function GameScreen({ navigation, route }: Props) {
-  const { mode, difficulty } = route.params;
+  const { mode, difficulty, continents } = route.params;
   const addMatch = useStatsStore((s) => s.addMatch);
   const { playCorrect, playWrong } = useSounds();
   const soundEnabled = useSettingsStore((s) => s.soundEnabled);
   const toggleSound = useSettingsStore((s) => s.toggleSound);
 
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   // Random Global Mix sorteia primeiro o continente (chance igual para todos)
   const balanced = difficulty === 'random';
 
   // Países disponíveis para a dificuldade escolhida e controle dos já usados
-  const pool = useMemo(() => filterByDifficulty(difficulty), [difficulty]);
+  const pool = useMemo(() => filterByDifficulty(difficulty, continents), [difficulty, continents]);
   const usedRef = useRef<Set<string>>(new Set());
 
   const [country, setCountry] = useState<Country>(() =>
@@ -107,7 +111,7 @@ export default function GameScreen({ navigation, route }: Props) {
       navigation.goBack();
       return;
     }
-    const match = buildMatchRecord(stats, mode, difficulty);
+    const match = buildMatchRecord(stats, mode, difficulty, continents);
     addMatch(match);
     navigation.replace('Result', { match });
   };
@@ -278,7 +282,7 @@ export default function GameScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   flex: { flex: 1 },
   safe: { flex: 1, backgroundColor: colors.background },
 

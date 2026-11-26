@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MatchRecord } from '../../../types';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
 import { formatDate } from '../../../utils/format';
 import { accuracy } from '../logic/gameLogic';
@@ -15,8 +16,15 @@ interface Props {
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function MatchRow({ match, rank }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const pct = accuracy(match);
   const pctColor = pct >= 80 ? colors.success : pct >= 50 ? colors.warning : colors.danger;
+
+  // Partidas antigas (sem filtro salvo) não mostram a linha: contam como "todos"
+  const continentsLabel =
+    match.continents && match.continents.length > 0 ? match.continents.join(', ') : null;
 
   return (
     <View style={styles.row}>
@@ -32,6 +40,11 @@ export default function MatchRow({ match, rank }: Props) {
         <Text style={styles.detail}>
           {MODE_LABELS[match.mode]} · {DIFFICULTY_LABELS[match.difficulty]}
         </Text>
+        {continentsLabel && (
+          <Text style={styles.continents} numberOfLines={2}>
+            {continentsLabel}
+          </Text>
+        )}
         <Text style={styles.date}>{formatDate(match.date)}</Text>
       </View>
 
@@ -40,19 +53,27 @@ export default function MatchRow({ match, rank }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  rank: { width: 36, color: colors.text, fontSize: fontSize.lg, fontWeight: '800', textAlign: 'center' },
-  info: { flex: 1, gap: 2 },
-  score: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
-  detail: { color: colors.muted, fontSize: fontSize.sm },
-  date: { color: colors.muted, fontSize: 12, opacity: 0.8 },
-  pct: { fontSize: fontSize.xl, fontWeight: '900' },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+    },
+    rank: {
+      width: 36,
+      color: colors.text,
+      fontSize: fontSize.lg,
+      fontWeight: '800',
+      textAlign: 'center',
+    },
+    info: { flex: 1, gap: 2 },
+    score: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
+    detail: { color: colors.muted, fontSize: fontSize.sm },
+    continents: { color: colors.primary, fontSize: fontSize.sm, fontWeight: '600' },
+    date: { color: colors.muted, fontSize: 12, opacity: 0.8 },
+    pct: { fontSize: fontSize.xl, fontWeight: '900' },
+  });

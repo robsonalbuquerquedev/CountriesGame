@@ -22,6 +22,7 @@ export interface MatchRecord {
   date: string; // ISO 8601
   mode: GameMode;
   difficulty: Difficulty;
+  continents?: Continent[]; // filtro usado na partida; ausente = todos
   correct: number;
   total: number;
   score: number;
@@ -32,10 +33,11 @@ export type RootStackParamList = {
   Home: undefined;
   ModeSelect: undefined;
   Difficulty: { mode: GameMode };
-  Game: { mode: GameMode; difficulty: Difficulty };
+  Game: { mode: GameMode; difficulty: Difficulty; continents?: Continent[] };
   Result: { match: MatchRecord };
   Stats: undefined;
   Ranking: undefined;
   History: undefined;
   About: undefined;
+  Countries: undefined;
 };

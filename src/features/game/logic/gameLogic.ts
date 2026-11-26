@@ -1,5 +1,5 @@
 import { COUNTRIES } from '../../../data/countries';
-import { Country, Difficulty, GameMode, MatchRecord } from '../../../types';
+import { Continent, Country, Difficulty, GameMode, MatchRecord } from '../../../types';
 
 export const POINTS_PER_CORRECT = 10;
 export const INITIAL_LIVES = 3;
@@ -7,19 +7,28 @@ export const TOTAL_HINTS = 4;
 
 /* ───────────────────────── Países e dificuldade ───────────────────────── */
 
-// O tamanho considera todos os caracteres do nome, incluindo espaços (Hint 2).
-export function filterByDifficulty(difficulty: Difficulty): Country[] {
+// O tamanho considera todos os caracteres do nome, incluindo espaços.
+// `continents` é opcional: vazio ou ausente = todos os continentes.
+export function filterByDifficulty(
+  difficulty: Difficulty,
+  continents?: Continent[]
+): Country[] {
+  const base =
+    continents && continents.length > 0
+      ? COUNTRIES.filter((c) => continents.includes(c.continent))
+      : COUNTRIES;
+
   switch (difficulty) {
     case 'easy':
-      return COUNTRIES.filter((c) => c.name.length <= 6);
+      return base.filter((c) => c.name.length <= 6);
     case 'medium':
-      return COUNTRIES.filter((c) => c.name.length >= 7 && c.name.length <= 10);
+      return base.filter((c) => c.name.length >= 7 && c.name.length <= 10);
     case 'hard':
-      return COUNTRIES.filter((c) => c.name.length > 10);
+      return base.filter((c) => c.name.length > 10);
     case 'all':
-    case 'random': // Random Global Mix: qualquer tamanho e continente
+    case 'random': // Random Global Mix: qualquer tamanho, equilibrado entre os continentes escolhidos
     default:
-      return COUNTRIES;
+      return base;
   }
 }
 
@@ -100,12 +109,86 @@ export interface Hint {
   value: string;
 }
 
+// Detecta letras (inclusive com acento), ignorando espaço, hífen e apóstrofo
+const isLetter = (ch: string) => ch.toLowerCase() !== ch.toUpperCase();
+
+// Mesmos limites de tamanho usados em filterByDifficulty
+type HintLevel = 'easy' | 'medium' | 'hard';
+
+function hintLevel(country: Country): HintLevel {
+  const len = country.name.length;
+  if (len <= 6) return 'easy';
+  if (len <= 10) return 'medium';
+  return 'hard';
+}
+
+// Dica 2: letra inicial (e quantas palavras, quando o nome tem mais de uma).
+// As peças na tela não mostram espaços nem hífens, então isso é informação nova.
+function startHint(country: Country): string {
+  const first = country.name.charAt(0).toUpperCase();
+  const words = country.name.trim().split(/\s+/).length;
+  return words > 1 ? `Começa com "${first}" · ${words} palavras` : `Começa com "${first}"`;
+}
+
+// Revela uma letra a cada `step` letras (a 1ª sempre aparece) e esconde as demais.
+// Mantém espaços, hífens e apóstrofos visíveis.
+// step 2: Brazil -> B _ a _ i _   |   step 3: Germany -> G _ _ m _ _ y
+function revealEvery(country: Country, step: number): string {
+  let n = 0;
+  return country.name
+    .split('')
+    .map((ch) => {
+      if (!isLetter(ch)) return ch;
+      const show = n % step === 0;
+      n += 1;
+      return show ? ch : '_';
+    })
+    .join(' ');
+}
+
+// Mostra só a primeira e a última letra de cada palavra.
+// United States -> U _ _ _ _ d   S _ _ _ _ s
+function firstAndLastOfEachWord(country: Country): string {
+  const chars = country.name.split('');
+  return chars
+    .map((ch, i) => {
+      if (!isLetter(ch)) return ch;
+      const isFirst = i === 0 || !isLetter(chars[i - 1]);
+      const isLast = i === chars.length - 1 || !isLetter(chars[i + 1]);
+      return isFirst || isLast ? ch : '_';
+    })
+    .join(' ');
+}
+
+/**
+ * As dicas ficam mais econômicas conforme o nome é mais longo (mais difícil):
+ *  - fácil:  continente, letra inicial, nome em português, metade das letras
+ *  - médio:  continente, letra inicial, nome em português, uma letra a cada três
+ *  - difícil: continente, letra inicial, capital, primeira e última letra de cada palavra
+ */
 export function getHints(country: Country): Hint[] {
+  const level = hintLevel(country);
+
+  const hint1: Hint = { label: 'Dica 1 · Continente', value: country.continent };
+  const hint2: Hint = { label: 'Dica 2 · Letra inicial', value: startHint(country) };
+
+  if (level === 'hard') {
+    return [
+      hint1,
+      hint2,
+      { label: 'Dica 3 · Capital', value: country.capital },
+      { label: 'Dica 4 · Início e fim das palavras', value: firstAndLastOfEachWord(country) },
+    ];
+  }
+
   return [
-    { label: 'Dica 1 · Continente', value: country.continent },
-    { label: 'Dica 2 · Nº de caracteres', value: String(country.name.length) },
+    hint1,
+    hint2,
     { label: 'Dica 3 · Em português', value: country.namePt },
-    { label: 'Dica 4 · Capital', value: country.capital },
+    {
+      label: level === 'easy' ? 'Dica 4 · Metade das letras' : 'Dica 4 · Algumas letras',
+      value: revealEvery(country, level === 'easy' ? 2 : 3),
+    },
   ];
 }
 
@@ -160,13 +243,15 @@ export function isGameOver(stats: RoundStats, mode: GameMode): boolean {
 export function buildMatchRecord(
   stats: RoundStats,
   mode: GameMode,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  continents?: Continent[] // filtro usado na partida; ausente = todos
 ): MatchRecord {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     date: new Date().toISOString(),
     mode,
     difficulty,
+    continents: continents && continents.length > 0 ? continents : undefined,
     correct: stats.correct,
     total: stats.total,
     score: stats.score,

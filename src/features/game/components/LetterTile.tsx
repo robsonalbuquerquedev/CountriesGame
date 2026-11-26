@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 
 interface Props {
   letter: string;
@@ -10,6 +11,9 @@ interface Props {
 }
 
 export default function LetterTile({ letter, index, celebrate }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const enter = useRef(new Animated.Value(0)).current;
   const hop = useRef(new Animated.Value(0)).current;
   const lastCelebrate = useRef(celebrate);
@@ -50,15 +54,16 @@ export default function LetterTile({ letter, index, celebrate }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  tile: {
-    minWidth: 38,
-    height: 46,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
-    backgroundColor: colors.tile,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    tile: {
+      minWidth: 38,
+      height: 46,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.tile,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    text: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
+  });

@@ -5,7 +5,8 @@ import { BarChart, LineChart, PieChart } from 'react-native-gifted-charts';
 
 import { COUNTRIES } from '../../../data/countries';
 import { Continent } from '../../../types';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { useStatsStore } from '../../../store/statsStore';
 
 const CONTINENTS: Continent[] = [
@@ -38,6 +39,9 @@ const CONTINENT_COLORS: Record<Continent, string> = {
 const MAX_LINE_POINTS = 30;
 
 export default function StatsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const matches = useStatsStore((s) => s.matches); // mais recente primeiro
   const { width } = useWindowDimensions();
 
@@ -247,6 +251,8 @@ export default function StatsScreen() {
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.summaryItem}>
       <Text style={styles.summaryValue}>{value}</Text>
@@ -255,7 +261,8 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.md },
 

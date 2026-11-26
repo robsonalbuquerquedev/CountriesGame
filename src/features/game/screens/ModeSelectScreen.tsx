@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../../../types';
-import { colors, fontSize, spacing } from '../../../theme';
+import { Palette, fontSize, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import MenuButton from '../components/MenuButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ModeSelect'>;
 
 export default function ModeSelectScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Text style={styles.heading}>Como você quer jogar?</Text>
@@ -31,13 +35,14 @@ export default function ModeSelectScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
-  heading: {
-    color: colors.text,
-    fontSize: fontSize.xl,
-    fontWeight: '800',
-    marginBottom: spacing.lg,
-  },
-  list: { gap: spacing.md },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
+    heading: {
+      color: colors.text,
+      fontSize: fontSize.xl,
+      fontWeight: '800',
+      marginBottom: spacing.lg,
+    },
+    list: { gap: spacing.md },
+  });

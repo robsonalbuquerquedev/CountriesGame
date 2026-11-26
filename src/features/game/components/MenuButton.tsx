@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 
 interface Props {
   title: string;
@@ -17,6 +18,9 @@ export default function MenuButton({
   variant = 'secondary',
   disabled = false,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const isPrimary = variant === 'primary';
 
   return (
@@ -43,25 +47,26 @@ export default function MenuButton({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.md,
-    justifyContent: 'center',
-  },
-  primary: { backgroundColor: colors.primary },
-  secondary: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  ghost: { borderWidth: 1, borderColor: colors.border },
-  pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
-  disabled: { opacity: 0.4 },
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    base: {
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: spacing.md,
+      justifyContent: 'center',
+    },
+    primary: { backgroundColor: colors.primary },
+    secondary: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    ghost: { borderWidth: 1, borderColor: colors.border },
+    pressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
+    disabled: { opacity: 0.4 },
 
-  title: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
-  titlePrimary: { color: colors.primaryText },
-  subtitle: { color: colors.muted, fontSize: fontSize.sm, marginTop: 2 },
-  subtitlePrimary: { color: colors.primaryText, opacity: 0.8 },
-});
+    title: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
+    titlePrimary: { color: colors.primaryText },
+    subtitle: { color: colors.muted, fontSize: fontSize.sm, marginTop: 2 },
+    subtitlePrimary: { color: colors.primaryText, opacity: 0.8 },
+  });

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../../../types';
-import { colors, fontSize, radius, spacing } from '../../../theme';
+import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
 import { accuracy } from '../logic/gameLogic';
 import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
 import MenuButton from '../components/MenuButton';
@@ -19,9 +20,16 @@ function feedbackMessage(pct: number) {
 }
 
 export default function ResultScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const { match } = route.params;
   useReviewPrompt(match);
   const pct = accuracy(match);
+
+  // Partidas antigas (sem filtro salvo) contam como "todos os continentes"
+  const continentsLabel =
+    match.continents && match.continents.length > 0 ? match.continents.join(', ') : null;
 
   const continentRows = Object.entries(match.byContinent).sort(
     ([, a], [, b]) => b.total - a.total
@@ -43,6 +51,7 @@ export default function ResultScreen({ navigation, route }: Props) {
           <Row label="Aproveitamento" value={`${pct}%`} />
           <Row label="Modo" value={MODE_LABELS[match.mode]} />
           <Row label="Dificuldade" value={DIFFICULTY_LABELS[match.difficulty]} />
+          {continentsLabel && <Row label="Continentes" value={continentsLabel} />}
         </View>
 
         <View style={styles.card}>
@@ -56,9 +65,15 @@ export default function ResultScreen({ navigation, route }: Props) {
           <MenuButton
             variant="primary"
             title="Jogar novamente"
-            subtitle={`${MODE_LABELS[match.mode]} · ${DIFFICULTY_LABELS[match.difficulty]}`}
+            subtitle={`${MODE_LABELS[match.mode]} · ${DIFFICULTY_LABELS[match.difficulty]}${
+              continentsLabel ? ` · ${continentsLabel}` : ''
+            }`}
             onPress={() =>
-              navigation.replace('Game', { mode: match.mode, difficulty: match.difficulty })
+              navigation.replace('Game', {
+                mode: match.mode,
+                difficulty: match.difficulty,
+                continents: match.continents,
+              })
             }
           />
           <MenuButton title="Menu inicial" onPress={() => navigation.popToTop()} />
@@ -69,6 +84,8 @@ export default function ResultScreen({ navigation, route }: Props) {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -77,7 +94,8 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, gap: spacing.md },
   heading: {
@@ -101,7 +119,13 @@ const styles = StyleSheet.create({
   cardTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '800' },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
   rowLabel: { color: colors.muted, fontSize: fontSize.md },
-  rowValue: { color: colors.text, fontSize: fontSize.md, fontWeight: '700' },
+  rowValue: {
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: '700',
+    flexShrink: 1,
+    textAlign: 'right',
+  },
 
   actions: { gap: spacing.md, marginTop: spacing.sm },
 });

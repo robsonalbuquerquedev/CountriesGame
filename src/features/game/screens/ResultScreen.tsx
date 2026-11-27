@@ -3,11 +3,12 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { RootStackParamList } from '../../../types';
+import { CryptogramLevel, RootStackParamList } from '../../../types';
 import { Palette, fontSize, radius, spacing } from '../../../theme';
 import { useTheme } from '../../../utils/useTheme';
 import { accuracy } from '../logic/gameLogic';
-import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
+import { formatDuration } from '../logic/cryptogramLogic';
+import { DIFFICULTY_LABELS, KIND_LABELS, MODE_LABELS, matchLabel } from '../../../utils/labels';
 import MenuButton from '../components/MenuButton';
 import { useReviewPrompt } from '../../../utils/useReviewPrompt';
 
@@ -26,6 +27,8 @@ export default function ResultScreen({ navigation, route }: Props) {
   const { match } = route.params;
   useReviewPrompt(match);
   const pct = accuracy(match);
+  const kind = match.kind ?? 'anagram';
+  const isCryptogram = kind === 'cryptogram';
 
   // Partidas antigas (sem filtro salvo) contam como "todos os continentes"
   const continentsLabel =
@@ -47,9 +50,21 @@ export default function ResultScreen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.card}>
-          <Row label="Acertos" value={`${match.correct} de ${match.total}`} />
-          <Row label="Aproveitamento" value={`${pct}%`} />
-          <Row label="Modo" value={MODE_LABELS[match.mode]} />
+          <Row label="Jogo" value={KIND_LABELS[kind]} />
+          {isCryptogram ? (
+            <>
+              <Row label="Palavras" value={String(match.total)} />
+              {match.durationSec !== undefined && (
+                <Row label="Tempo" value={formatDuration(match.durationSec)} />
+              )}
+            </>
+          ) : (
+            <>
+              <Row label="Acertos" value={`${match.correct} de ${match.total}`} />
+              <Row label="Aproveitamento" value={`${pct}%`} />
+              <Row label="Modo" value={MODE_LABELS[match.mode]} />
+            </>
+          )}
           <Row label="Dificuldade" value={DIFFICULTY_LABELS[match.difficulty]} />
           {continentsLabel && <Row label="Continentes" value={continentsLabel} />}
         </View>
@@ -65,15 +80,16 @@ export default function ResultScreen({ navigation, route }: Props) {
           <MenuButton
             variant="primary"
             title="Jogar novamente"
-            subtitle={`${MODE_LABELS[match.mode]} · ${DIFFICULTY_LABELS[match.difficulty]}${
-              continentsLabel ? ` · ${continentsLabel}` : ''
-            }`}
+            subtitle={`${matchLabel(match)}${continentsLabel ? ` · ${continentsLabel}` : ''}`}
             onPress={() =>
-              navigation.replace('Game', {
-                mode: match.mode,
-                difficulty: match.difficulty,
-                continents: match.continents,
-              })
+              isCryptogram
+                ? navigation.replace('Cryptogram', { level: match.difficulty as CryptogramLevel })
+                : navigation.replace('Game', {
+                    mode: match.mode,
+                    difficulty: match.difficulty,
+                    continents: match.continents,
+                    kind,
+                  })
             }
           />
           <MenuButton title="Menu inicial" onPress={() => navigation.popToTop()} />

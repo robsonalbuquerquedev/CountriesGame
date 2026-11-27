@@ -7,8 +7,8 @@ import { COUNTRIES } from '../../../data/countries';
 import { Continent, Difficulty, RootStackParamList } from '../../../types';
 import { Palette, fontSize, radius, spacing } from '../../../theme';
 import { useTheme } from '../../../utils/useTheme';
-import { filterByDifficulty } from '../logic/gameLogic';
-import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
+import { buildPool } from '../logic/gameLogic';
+import { DIFFICULTY_LABELS, KIND_LABELS, MODE_LABELS } from '../../../utils/labels';
 import MenuButton from '../components/MenuButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Difficulty'>;
@@ -32,7 +32,7 @@ export default function DifficultyScreen({ navigation, route }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const { mode } = route.params;
+  const { mode, kind } = route.params;
 
   // Lista vazia = todos os continentes
   const [selected, setSelected] = useState<Continent[]>([]);
@@ -51,10 +51,10 @@ export default function DifficultyScreen({ navigation, route }: Props) {
   const counts = useMemo(() => {
     const result = {} as Record<Difficulty, number>;
     OPTIONS.forEach(({ key }) => {
-      result[key] = filterByDifficulty(key, selected).length;
+      result[key] = buildPool(key, selected, kind).length;
     });
     return result;
-  }, [selected]);
+  }, [selected, kind]);
 
   const allSelected = selected.length === 0;
 
@@ -62,7 +62,9 @@ export default function DifficultyScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.heading}>Escolha o que treinar</Text>
-        <Text style={styles.mode}>{MODE_LABELS[mode]}</Text>
+        <Text style={styles.mode}>
+          {KIND_LABELS[kind]} · {MODE_LABELS[mode]}
+        </Text>
 
         {/* Continentes (seleção múltipla) */}
         <Text style={styles.section}>Continentes</Text>
@@ -129,6 +131,7 @@ export default function DifficultyScreen({ navigation, route }: Props) {
                       mode,
                       difficulty: key,
                       continents: allSelected ? undefined : selected,
+                      kind,
                     })
                   }
                 />

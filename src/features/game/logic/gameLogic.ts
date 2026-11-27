@@ -1,5 +1,6 @@
 import { COUNTRIES } from '../../../data/countries';
-import { Continent, Country, Difficulty, GameMode, MatchRecord } from '../../../types';
+import { flagEmoji } from '../../../data/flags';
+import { Continent, Country, Difficulty, GameKind, GameMode, MatchRecord } from '../../../types';
 
 export const POINTS_PER_CORRECT = 10;
 export const INITIAL_LIVES = 3;
@@ -30,6 +31,16 @@ export function filterByDifficulty(
     default:
       return base;
   }
+}
+
+// Países disponíveis para uma partida: dificuldade + continentes (+ só os que têm bandeira, no modo Bandeiras)
+export function buildPool(
+  difficulty: Difficulty,
+  continents?: Continent[],
+  kind: GameKind = 'anagram'
+): Country[] {
+  const pool = filterByDifficulty(difficulty, continents);
+  return kind === 'flags' ? pool.filter((c) => flagEmoji(c) !== undefined) : pool;
 }
 
 /**
@@ -244,13 +255,15 @@ export function buildMatchRecord(
   stats: RoundStats,
   mode: GameMode,
   difficulty: Difficulty,
-  continents?: Continent[] // filtro usado na partida; ausente = todos
+  continents?: Continent[], // filtro usado na partida; ausente = todos
+  kind: GameKind = 'anagram'
 ): MatchRecord {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     date: new Date().toISOString(),
     mode,
     difficulty,
+    kind,
     continents: continents && continents.length > 0 ? continents : undefined,
     correct: stats.correct,
     total: stats.total,

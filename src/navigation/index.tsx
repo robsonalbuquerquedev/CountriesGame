@@ -18,6 +18,9 @@ import HistoryScreen from '../features/history/screens/HistoryScreen';
 import StatsScreen from '../features/stats/screens/StatsScreen';
 import AboutScreen from '../features/about/screens/AboutScreen';
 import CountriesScreen from '../features/game/screens/CountriesScreen';
+import GameSelectScreen from '../features/game/screens/GameSelectScreen';
+import CryptogramLevelScreen from '../features/game/screens/CryptogramLevelScreen';
+import CryptogramScreen from '../features/game/screens/CryptogramScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -65,7 +68,18 @@ export default function Navigation() {
         <Stack.Screen name="About" component={AboutScreen} options={{ title: 'Sobre' }} />
         <Stack.Screen name="Countries" component={CountriesScreen} options={{ title: 'Países' }} />
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="GameSelect" component={GameSelectScreen} options={{ title: 'Jogar' }} />
         <Stack.Screen name="ModeSelect" component={ModeSelectScreen} options={{ title: 'Modo de jogo' }} />
+        <Stack.Screen
+          name="CryptogramLevel"
+          component={CryptogramLevelScreen}
+          options={{ title: 'Criptograma' }}
+        />
+        <Stack.Screen
+          name="Cryptogram"
+          component={CryptogramScreen}
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
         <Stack.Screen name="Difficulty" component={DifficultyScreen} options={{ title: 'Dificuldade' }} />
         <Stack.Screen
           name="Game"

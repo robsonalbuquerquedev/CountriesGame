@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MatchRecord } from '../../../types';
 import { Palette, fontSize, radius, spacing } from '../../../theme';
 import { useTheme } from '../../../utils/useTheme';
-import { DIFFICULTY_LABELS, MODE_LABELS } from '../../../utils/labels';
+import { matchLabel } from '../../../utils/labels';
 import { formatDate } from '../../../utils/format';
 import { accuracy } from '../logic/gameLogic';
 
@@ -37,9 +37,7 @@ export default function MatchRow({ match, rank }: Props) {
         <Text style={styles.detail}>
           {match.correct}/{match.total} acertos
         </Text>
-        <Text style={styles.detail}>
-          {MODE_LABELS[match.mode]} · {DIFFICULTY_LABELS[match.difficulty]}
-        </Text>
+        <Text style={styles.detail}>{matchLabel(match)}</Text>
         {continentsLabel && (
           <Text style={styles.continents} numberOfLines={2}>
             {continentsLabel}

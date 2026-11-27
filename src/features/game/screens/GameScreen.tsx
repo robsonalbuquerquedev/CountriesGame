@@ -18,6 +18,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Country, RootStackParamList } from '../../../types';
 import { Palette, fontSize, radius, spacing } from '../../../theme';
+import { useTheme } from '../../../utils/useTheme';
+import { flagEmoji } from '../../../data/flags';
 import { useStatsStore } from '../../../store/statsStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { useSounds } from '../../../utils/useSounds';
@@ -28,33 +30,34 @@ import {
   TOTAL_HINTS,
   applyAnswer,
   buildMatchRecord,
+  buildPool,
   checkAnswer,
-  filterByDifficulty,
   getHints,
   initialStats,
   isGameOver,
   pickCountry,
   scramble,
 } from '../logic/gameLogic';
-import { useTheme } from '../../../utils/useTheme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Game'>;
 
 export default function GameScreen({ navigation, route }: Props) {
-  const { mode, difficulty, continents } = route.params;
+  const { mode, difficulty, continents, kind = 'anagram' } = route.params;
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const addMatch = useStatsStore((s) => s.addMatch);
   const { playCorrect, playWrong } = useSounds();
   const soundEnabled = useSettingsStore((s) => s.soundEnabled);
   const toggleSound = useSettingsStore((s) => s.toggleSound);
 
-  const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-
   // Random Global Mix sorteia primeiro o continente (chance igual para todos)
   const balanced = difficulty === 'random';
 
   // Países disponíveis para a dificuldade escolhida e controle dos já usados
-  const pool = useMemo(() => filterByDifficulty(difficulty, continents), [difficulty, continents]);
+  const pool = useMemo(
+    () => buildPool(difficulty, continents, kind),
+    [difficulty, continents, kind]
+  );
   const usedRef = useRef<Set<string>>(new Set());
 
   const [country, setCountry] = useState<Country>(() =>
@@ -70,6 +73,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const letters = useMemo(() => scramble(country.name), [country]);
   const hints = useMemo(() => getHints(country), [country]);
+  const flag = kind === 'flags' ? flagEmoji(country) : undefined;
 
   const answered = result !== null;
   const gameOver = answered && isGameOver(stats, mode);
@@ -111,7 +115,7 @@ export default function GameScreen({ navigation, route }: Props) {
       navigation.goBack();
       return;
     }
-    const match = buildMatchRecord(stats, mode, difficulty, continents);
+    const match = buildMatchRecord(stats, mode, difficulty, continents, kind);
     addMatch(match);
     navigation.replace('Result', { match });
   };
@@ -171,19 +175,27 @@ export default function GameScreen({ navigation, route }: Props) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Decifre o país</Text>
+          <Text style={styles.title}>
+            {kind === 'flags' ? 'De que país é esta bandeira?' : 'Decifre o país'}
+          </Text>
 
           {/* Anagrama (a key inclui o país para as letras animarem a entrada a cada rodada) */}
-          <View style={styles.tiles}>
-            {letters.map((letter, index) => (
-              <LetterTile
-                key={`${country.name}-${index}`}
-                letter={letter}
-                index={index}
-                celebrate={celebrate}
-              />
-            ))}
-          </View>
+          {kind === 'flags' ? (
+            <View style={styles.flagBox} accessibilityLabel="Bandeira do país">
+              <Text style={styles.flag}>{flag}</Text>
+            </View>
+          ) : (
+            <View style={styles.tiles}>
+              {letters.map((letter, index) => (
+                <LetterTile
+                  key={`${country.name}-${index}`}
+                  letter={letter}
+                  index={index}
+                  celebrate={celebrate}
+                />
+              ))}
+            </View>
+          )}
 
           {/* Dicas reveladas uma a uma */}
           <View style={styles.hintsBox}>
@@ -282,7 +294,8 @@ export default function GameScreen({ navigation, route }: Props) {
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
   flex: { flex: 1 },
   safe: { flex: 1, backgroundColor: colors.background },
 
@@ -322,6 +335,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
   },
+
+  flagBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+  },
+  flag: { fontSize: 110 },
 
   tiles: {
     flexDirection: 'row',
